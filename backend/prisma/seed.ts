@@ -1,31 +1,56 @@
+import { faker } from "@faker-js/faker";
 import prisma from "../src/config/prisma";
 import dotenv from 'dotenv';
 
 dotenv.config();
 
+const cleanDb = process.env.cleanDb === 'true';
+const userCount = parseInt(process.env.userCount || '0');
+const bookCount = parseInt(process.env.bookCount || '0');
+
 async function main() {
-  await prisma.user.createMany({
-    data: [
-      { name: "Ahmet", email: "ahmet@example.com" },
-      { name: "Mehmet", email: "mehmet@example.com" },
-      { name: "Ayşe", email: "ayse@example.com" },
-      { name: "Fatma", email: "fatma@example.com" },
-      { name: "Ali", email: "ali@example.com" },
-    ],
-  });
+  console.log('🌱 Seeding the database...');
+  if (cleanDb) {
+    try {
 
-  await prisma.book.createMany({
-    data: [
-      { title: "Foundation", author: "Isaac Asimov", publishedAt: new Date("1951-06-01") },
-      { title: "Foundation and Empire", author: "Isaac Asimov", publishedAt: new Date("1952-10-01") },
-      { title: "Second Foundation", author: "Isaac Asimov", publishedAt: new Date("1953-11-01") },
-      { title: "The Stars, Like Dust", author: "Isaac Asimov", publishedAt: new Date("1951-01-01") },
-      { title: "The Currents of Space", author: "Isaac Asimov", publishedAt: new Date("1952-01-01") },
-      { title: "Pebble in the Sky", author: "Isaac Asimov", publishedAt: new Date("1950-01-01") },
-    ],
-  });
+      console.log('🗑️ Cleaning the database...');
+      await prisma.rating.deleteMany();
+      await prisma.borrowedBook.deleteMany();
+      await prisma.user.deleteMany();
+      await prisma.book.deleteMany();
+      console.log('✅ Database cleaned.');
 
-  console.log("📦 Test data added.");
+    } catch (error) {
+      console.error('An error occurred while cleaning the database.', error);
+    }
+  }
+
+  try {
+
+    if (userCount > 0) {
+      const users = Array.from({ length: userCount }).map(() => ({
+        name: faker.person.fullName(),
+        email: faker.internet.email(),
+      }));
+
+      const res = await prisma.user.createMany({ data: users });
+      console.log(`📦 ${res.count} users added.`);
+    }
+
+    if (bookCount > 0) {
+      const books = Array.from({ length: bookCount }).map(() => ({
+        title: faker.lorem.words(3),
+        author: faker.person.fullName(),
+        publishedAt: faker.date.past(),
+      }));
+
+      const res = await prisma.book.createMany({ data: books });
+      console.log(`📚 ${res.count} books added.`);
+    }
+
+  } catch (error) {
+    console.error("An error occurred while adding test data.", error);
+  }
 }
 
 main()

@@ -1,0 +1,28 @@
+{
+  "version": "0.2.0",
+  "configurations": [
+    {
+      "type": "node",
+      "request": "launch",
+      "name": "Run Seed Script",
+      "cwd": "${workspaceFolder}/backend",
+      "skipFiles": [
+        "<node_internals>/**"
+      ],
+      "program": "${workspaceFolder}/backend/prisma/seed.ts",
+      "runtimeArgs": [
+        "-r",
+        "ts-node/register"
+      ],
+      "env": {
+        "NODE_ENV": "development",
+        "DATABASE_URL": "postgresql://postgres:password@localhost:5432/librarydb"
+      },
+      "args": [
+        "--cleanDb",
+        "userCount=5",
+        "bookCount=5"
+      ]
+    }
+  ]
+}
